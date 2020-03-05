@@ -46,19 +46,18 @@ try {
 }
 // shell.exec(`sed 's/${replaceText}/${projectId}/' DoormanDownload/.firebaserc_before > DoormanDownload/.firebaserc`);
 
-LOCATION_OUTPUT = '.locationParsing';
+const LOCATION_OUTPUT = 'firebaseUploadingLogs';
 
 shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic > ${LOCATION_OUTPUT}`);
 
-/*
-const inter = fs.readFileSync(LOCATION_OUTPUT, 'utf8');
-let token = inter.substring(inter.lastIndexOf('doormanPhoneLogic('));
-token = token.substring(0, token.indexOf(')'));
-token = token.trim().replace(/\r?\n|\r/g, '');
-location = token.replace('doormanPhoneLogic(', '').replace(')', '');
+temp = fs.readFileSync(`${DOORMAN_DIRECTORY}/functions/${LOCATION_OUTPUT}`, 'utf8');
+let location = temp.substring(temp.lastIndexOf('doormanPhoneLogic('));
+location = location.substring(0, location.indexOf(')'));
+location = location.trim().replace(/\r?\n|\r/g, '');
+location = location.replace('doormanPhoneLogic(', '').replace(')', '');
 console.log('PARSED LOCATION', location);
 // shell.exec(`rm ${OUTPUT_FILE}`);
-*/
+const final_location = location || givenLocation;
 
-const ENDPOINT = `https://${givenLocation}-${projectId}.cloudfunctions.net/doormanPhoneLogic`;
+const ENDPOINT = `https://${final_location}-${projectId}.cloudfunctions.net/doormanPhoneLogic`;
 console.log('ENDPOINT FOR FUNCTION', ENDPOINT);
