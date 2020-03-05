@@ -13,6 +13,7 @@ console.log('now logging shit, this is version', pkg.version);
 const OUTPUT_FILE = '.interactive';
 
 shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest --save');
+console.log('all firebase stuff has been installed');
 
 shell.exec(`firebase login:ci --interactive > ${OUTPUT_FILE}`); //TODO put back after testing
 
