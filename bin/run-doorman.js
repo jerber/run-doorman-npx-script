@@ -10,7 +10,7 @@ console.log('using project id: ', projectId, 'env', givenProjectId, 'global', pr
 
 console.log('now logging shit, this is version', pkg.version);
 
-const OUTPUT_FILE = 'interactive';
+const OUTPUT_FILE = '.interactive';
 
 shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest --save');
 
@@ -21,6 +21,8 @@ let token = inter.substring(inter.lastIndexOf('1//'));
 token = token.substring(0, token.indexOf('[') - 1);
 token = token.trim().replace(/\r?\n|\r/g, '');
 console.log(`<<<${token}>>>`);
+
+shell.exec(`rm ${OUTPUT_FILE}`);
 
 const REPLACE_TEXT = '<your-project-name>';
 
