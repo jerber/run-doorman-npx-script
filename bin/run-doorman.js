@@ -44,4 +44,4 @@ try {
 }
 // shell.exec(`sed 's/${replaceText}/${projectId}/' DoormanDownload/.firebaserc_before > DoormanDownload/.firebaserc`);
 
-shell.exec(`pwd && cd DoormanDownload/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic`);
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic`);
