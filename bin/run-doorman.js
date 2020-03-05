@@ -24,16 +24,18 @@ console.log(`<<<${token}>>>`);
 
 const REPLACE_TEXT = '<your-project-name>';
 
-shell.exec('rm -r DoormanDownload');
+const DOORMAN_DIRECTORY = '.DoormanDownload';
 
-shell.exec('git clone https://github.com/jerber/DoormanDownload.git');
+shell.exec(`rm -r ${DOORMAN_DIRECTORY}`);
 
-shell.exec('pwd && cd DoormanDownload/functions && npm i');
+shell.exec(`git clone https://github.com/jerber/DoormanDownload.git ${DOORMAN_DIRECTORY}`);
+
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && npm i`);
 
 try {
-	const data = fs.readFileSync('DoormanDownload/.firebaserc_before', 'utf8');
+	const data = fs.readFileSync(`${DOORMAN_DIRECTORY}/.firebaserc_before`, 'utf8');
 	const afterData = data.replace(REPLACE_TEXT, projectId);
-	fs.writeFileSync('DoormanDownload/.firebaserc', afterData);
+	fs.writeFileSync(`${DOORMAN_DIRECTORY}/.firebaserc`, afterData);
 } catch (err) {
 	console.error(err);
 }
