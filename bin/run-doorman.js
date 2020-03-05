@@ -5,6 +5,8 @@ const fs = require('fs');
 const pkg = require('../package.json');
 
 const givenProjectId = process.argv[2];
+const givenLocation = process.argv[3] || 'us-central1';
+
 const projectId = givenProjectId || process.env.FIREBASE_PROJECT_ID;
 console.log('using project id: ', projectId, 'env', givenProjectId, 'global', process.env.FIREBASE_PROJECT_ID);
 
@@ -44,4 +46,17 @@ try {
 }
 // shell.exec(`sed 's/${replaceText}/${projectId}/' DoormanDownload/.firebaserc_before > DoormanDownload/.firebaserc`);
 
-shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic`);
+LOCATION_OUTPUT = '.locationParsing';
+
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic > ${LOCATION_OUTPUT}`);
+
+const inter = fs.readFileSync(LOCATION_OUTPUT, 'utf8');
+let token = inter.substring(inter.lastIndexOf('doormanPhoneLogic('));
+token = token.substring(0, token.indexOf(')'));
+token = token.trim().replace(/\r?\n|\r/g, '');
+location = token.replace('doormanPhoneLogic(', '').replace(')', '');
+console.log('PARSED LOCATION', location);
+// shell.exec(`rm ${OUTPUT_FILE}`);
+
+const ENDPOINT = `https://${givenLocation}-${projectId}.cloudfunctions.net/doormanPhoneLogic`;
+console.log('ENDPOINT FOR FUNCTION', ENDPOINT);
