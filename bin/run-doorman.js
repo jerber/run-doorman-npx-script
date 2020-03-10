@@ -56,8 +56,7 @@ location = location.substring(0, location.indexOf(')'));
 location = location.trim().replace(/\r?\n|\r/g, '');
 location = location.replace('doormanPhoneLogic(', '').replace(')', '');
 console.log('PARSED LOCATION', location);
-// shell.exec(`rm ${OUTPUT_FILE}`);
 const final_location = location || givenLocation;
-
+if (final_location !== 'us-central1') console.log('REGIION IS NOT USE CENTRAL***');
 const ENDPOINT = `https://${final_location}-${projectId}.cloudfunctions.net/doormanPhoneLogic`;
 console.log('ENDPOINT FOR FUNCTION', ENDPOINT);
