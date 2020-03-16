@@ -5,7 +5,8 @@ const fs = require('fs');
 const pkg = require('../package.json');
 
 const givenProjectId = process.argv[2];
-const givenLocation = process.argv[3] || 'us-central1';
+const apiSecret = process.argv[3];
+const givenLocation = process.argv[4] || 'us-central1';
 
 const projectId = givenProjectId || process.env.FIREBASE_PROJECT_ID;
 console.log('using project id: ', projectId, 'env', givenProjectId, 'global', process.env.FIREBASE_PROJECT_ID);
@@ -35,7 +36,7 @@ shell.exec(`rm -r ${DOORMAN_DIRECTORY}`);
 
 shell.exec(`git clone https://github.com/jerber/DoormanDownload.git ${DOORMAN_DIRECTORY}`);
 
-shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && npm i`);
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && npm i && firebase functions:config:set doorman.apiSecret="${apiSecret}"`);
 
 try {
 	const data = fs.readFileSync(`${DOORMAN_DIRECTORY}/.firebaserc_before`, 'utf8');
