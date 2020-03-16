@@ -11,7 +11,7 @@ const givenLocation = process.argv[4] || 'us-central1';
 const projectId = givenProjectId || process.env.FIREBASE_PROJECT_ID;
 console.log('using project id: ', projectId, 'env', givenProjectId, 'global', process.env.FIREBASE_PROJECT_ID);
 
-console.log('now logging shit, this is version', pkg.version);
+console.log('this is version', pkg.version);
 
 const OUTPUT_FILE = '.interactive';
 

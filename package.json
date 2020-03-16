@@ -1,6 +1,6 @@
 {
 	"name": "run-doorman",
-	"version": "1.0.57",
+	"version": "1.0.58",
 	"description": "Runs doorman and uploads to firebase.",
 	"main": "index.js",
 	"bin": {
