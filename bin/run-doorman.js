@@ -8,6 +8,15 @@ const givenProjectId = process.argv[2];
 const apiSecret = process.argv[3];
 const givenLocation = process.argv[4] || 'us-central1';
 
+if (!givenProjectId) {
+	console.log('no given project id');
+	return;
+}
+if (!apiSecret) {
+	console.log('no given api secret');
+	return;
+}
+
 const projectId = givenProjectId || process.env.FIREBASE_PROJECT_ID;
 console.log('using project id: ', projectId, 'env', givenProjectId, 'global', process.env.FIREBASE_PROJECT_ID);
 
