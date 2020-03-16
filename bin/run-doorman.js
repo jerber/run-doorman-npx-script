@@ -36,7 +36,7 @@ shell.exec(`rm -r ${DOORMAN_DIRECTORY}`);
 
 shell.exec(`git clone https://github.com/jerber/DoormanDownload.git ${DOORMAN_DIRECTORY}`);
 
-shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && npm i && firebase functions:config:set doorman.apiSecret="${apiSecret}"`);
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && npm i`);
 
 try {
 	const data = fs.readFileSync(`${DOORMAN_DIRECTORY}/.firebaserc_before`, 'utf8');
@@ -48,6 +48,10 @@ try {
 // shell.exec(`sed 's/${replaceText}/${projectId}/' DoormanDownload/.firebaserc_before > DoormanDownload/.firebaserc`);
 
 const LOCATION_OUTPUT = 'firebaseUploadingLogs';
+
+// add config
+console.log('adding env key now...');
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase functions:config:set doorman.apisecret="${apiSecret}"`);
 
 shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic > ${LOCATION_OUTPUT}`);
 
