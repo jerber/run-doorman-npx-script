@@ -2,6 +2,8 @@
 
 var shell = require('shelljs');
 const fs = require('fs');
+const https = require('https');
+
 const pkg = require('../package.json');
 
 const givenProjectId = process.argv[2];
@@ -74,3 +76,10 @@ const final_location = location || givenLocation;
 if (final_location !== 'us-central1') console.log('REGIION IS NOT USE CENTRAL***');
 const ENDPOINT = `https://${final_location}-${projectId}.cloudfunctions.net/doormanPhoneLogic`;
 console.log('ENDPOINT FOR FUNCTION', ENDPOINT);
+
+// now time to send data to server
+const DOORMAN_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/uploadedCloudFunction';
+command_str = `curl -X POST -H "Content-Type: application/json" -d '{\"endpoint\": \"${ENDPOINT}\", \"parsedLocation\": \"${location}\", \"firebaseAccountId\": \"${projectId}\", \"apiSecret\": \"${apiSecret}\"}' ${DOORMAN_ENDPOINT}`;
+console.log('sending to doorman endpoint now');
+shell.exec(command_str);
+console.log('sent to endpoint');
