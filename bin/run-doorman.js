@@ -62,8 +62,8 @@ const LOCATION_OUTPUT = 'firebaseUploadingLogs';
 
 // add config
 console.log('adding env key now...');
-shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase functions:config:set doorman.apisecret="${apiSecret}"`);
-
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase functions:config:set doorman.apisecret="${apiSecret}" --token "${token}"`);
+console.log('finished adding secret, now deploying...');
 shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic > ${LOCATION_OUTPUT}`);
 
 temp = fs.readFileSync(`${DOORMAN_DIRECTORY}/functions/${LOCATION_OUTPUT}`, 'utf8');
