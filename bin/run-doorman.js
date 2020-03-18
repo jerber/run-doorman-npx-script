@@ -79,7 +79,7 @@ console.log('ENDPOINT FOR FUNCTION', ENDPOINT);
 
 // now time to send data to server
 const DOORMAN_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/uploadedCloudFunction';
-command_str = `curl -X POST -H "Content-Type: application/json" -d '{\"endpoint\": \"${ENDPOINT}\", \"parsedLocation\": \"${location}\", \"firebaseAccountId\": \"${projectId}\", \"apiSecret\": \"${apiSecret}\"}' ${DOORMAN_ENDPOINT}`;
+command_str = `curl -X POST -H "Content-Type: application/json" -d '{\"endpoint\": \"${ENDPOINT}\", \"parsedLocation\": \"${location}\", \"firebaseProjectId\": \"${projectId}\", \"apiSecret\": \"${apiSecret}\"}' ${DOORMAN_ENDPOINT}`;
 console.log('sending to doorman endpoint now');
 shell.exec(command_str);
 console.log('sent to endpoint');
