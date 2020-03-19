@@ -24,35 +24,42 @@ console.log('using project id: ', projectId, 'env', givenProjectId, 'global', pr
 
 console.log('this is version', pkg.version);
 
+const OUTER_DIRECTORY = '.DoormanOuterDirectory';
+
 const OUTPUT_FILE = '.interactive';
 
-shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest --save');
+const OUTPUT_FILE_PATH = `${OUTER_DIRECTORY}/${OUTPUT_FILE}`;
+
+shell.exec(
+	`mkdir ${OUTER_DIRECTORY} && cd ${OUTER_DIRECTORY} && npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest --save`
+);
 console.log('all firebase stuff has been installed');
 
-shell.exec(`firebase login:ci --interactive > ${OUTPUT_FILE}`); //TODO put back after testing
+shell.exec(`firebase login:ci --interactive > ${OUTPUT_FILE_PATH}`); //TODO put back after testing
 
-const inter = fs.readFileSync(OUTPUT_FILE, 'utf8');
+const inter = fs.readFileSync(OUTPUT_FILE_PATH, 'utf8');
 let token = inter.substring(inter.lastIndexOf('1//'));
 token = token.substring(0, token.indexOf('[') - 1);
 token = token.trim().replace(/\r?\n|\r/g, '');
 console.log(`<<<${token}>>>`);
 
-shell.exec(`rm ${OUTPUT_FILE}`);
+shell.exec(`rm ${OUTPUT_FILE_PATH}`);
 
 const REPLACE_TEXT = '<your-project-name>';
 
 const DOORMAN_DIRECTORY = '.DoormanDownload';
+const DOORMAN_DIRECTORY_PATH = `${OUTER_DIRECTORY}/${DOORMAN_DIRECTORY}`;
 
-shell.exec(`rm -r ${DOORMAN_DIRECTORY}`);
+shell.exec(`rm -r ${DOORMAN_DIRECTORY_PATH}`);
 
-shell.exec(`git clone https://github.com/jerber/DoormanDownload.git ${DOORMAN_DIRECTORY}`);
+shell.exec(`git clone https://github.com/jerber/DoormanDownload.git ${DOORMAN_DIRECTORY_PATH}`);
 
-shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && npm i`);
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY_PATH}/functions && npm i`);
 
 try {
-	const data = fs.readFileSync(`${DOORMAN_DIRECTORY}/.firebaserc_before`, 'utf8');
+	const data = fs.readFileSync(`${DOORMAN_DIRECTORY_PATH}/.firebaserc_before`, 'utf8');
 	const afterData = data.replace(REPLACE_TEXT, projectId);
-	fs.writeFileSync(`${DOORMAN_DIRECTORY}/.firebaserc`, afterData);
+	fs.writeFileSync(`${DOORMAN_DIRECTORY_PATH}/.firebaserc`, afterData);
 } catch (err) {
 	console.error(err);
 }
@@ -62,11 +69,13 @@ const LOCATION_OUTPUT = 'firebaseUploadingLogs';
 
 // add config
 console.log('adding env key now...');
-shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase functions:config:set doorman.apisecret="${apiSecret}" --token "${token}"`);
+shell.exec(`pwd && cd ${DOORMAN_DIRECTORY_PATH}/functions && firebase functions:config:set doorman.apisecret="${apiSecret}" --token "${token}"`);
 console.log('finished adding secret, now deploying...');
-shell.exec(`pwd && cd ${DOORMAN_DIRECTORY}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic > ${LOCATION_OUTPUT}`);
+shell.exec(
+	`pwd && cd ${DOORMAN_DIRECTORY_PATH}/functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic > ${LOCATION_OUTPUT}`
+);
 
-temp = fs.readFileSync(`${DOORMAN_DIRECTORY}/functions/${LOCATION_OUTPUT}`, 'utf8');
+temp = fs.readFileSync(`${DOORMAN_DIRECTORY_PATH}/functions/${LOCATION_OUTPUT}`, 'utf8');
 let location = temp.substring(temp.lastIndexOf('doormanPhoneLogic('));
 location = location.substring(0, location.indexOf(')'));
 location = location.trim().replace(/\r?\n|\r/g, '');
@@ -76,6 +85,8 @@ const final_location = location || givenLocation;
 if (final_location !== 'us-central1') console.log('REGIION IS NOT USE CENTRAL***');
 const ENDPOINT = `https://${final_location}-${projectId}.cloudfunctions.net/doormanPhoneLogic`;
 console.log('ENDPOINT FOR FUNCTION', ENDPOINT);
+
+shell.exec(`rm -r ${OUTER_DIRECTORY}`);
 
 // now time to send data to server
 const DOORMAN_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/uploadedCloudFunction';
