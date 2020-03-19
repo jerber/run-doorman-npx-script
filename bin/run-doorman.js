@@ -3,6 +3,7 @@
 var shell = require('shelljs');
 const fs = require('fs');
 const https = require('https');
+const process = require('process');
 
 const pkg = require('../package.json');
 
@@ -30,12 +31,23 @@ const OUTPUT_FILE = '.interactive';
 
 const OUTPUT_FILE_PATH = `${OUTER_DIRECTORY}/${OUTPUT_FILE}`;
 
-shell.exec(
-	`mkdir ${OUTER_DIRECTORY} && cd ${OUTER_DIRECTORY} && npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest --save`
-);
+shell.exec(`mkdir ${OUTER_DIRECTORY}`);
+
+process.chdir(OUTER_DIRECTORY);
+
+shell.exec(`cd ${OUTER_DIRECTORY} && npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest --save`);
+
+process.chdir('../');
+
 console.log('all firebase stuff has been installed');
 
-shell.exec(`firebase login:ci --interactive > ${OUTPUT_FILE_PATH}`); //TODO put back after testing
+console.log('now going back to old dir');
+
+process.chdir(OUTER_DIRECTORY);
+
+shell.exec(`firebase login:ci --interactive > ${OUTPUT_FILE}`); //TODO put back after testing
+
+process.chdir('../');
 
 const inter = fs.readFileSync(OUTPUT_FILE_PATH, 'utf8');
 let token = inter.substring(inter.lastIndexOf('1//'));
