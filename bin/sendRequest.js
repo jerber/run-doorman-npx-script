@@ -1,6 +1,7 @@
 const https = require('https');
 
 const sendRequest = body => {
+	console.log('SEND REQUEST CALLED!');
 	const data = JSON.stringify(body);
 
 	const full_hostname = 'https://sending-messages-for-doorman.herokuapp.com';
@@ -19,6 +20,7 @@ const sendRequest = body => {
 	};
 
 	const req = https.request(options, res => {
+		console.log('REQQQQQ REQUEST CALLED!');
 		// console.log(`statusCode: ${res.statusCode}`);
 		var dataQueue = '';
 		res.on('data', d => {
@@ -26,7 +28,8 @@ const sendRequest = body => {
 			dataQueue += d;
 		});
 		res.on('end', function() {
-			console.log('Status resonse from Doorman Server:', dataQueue);
+			data = JSON.parse(dataQueue);
+			console.log('Status resonse from Doorman Server:', data);
 			// return dataQueue;
 		});
 	});
@@ -35,8 +38,11 @@ const sendRequest = body => {
 		console.error(error);
 	});
 
+	console.log('BEFORE WRITE REQUEST CALLED!');
 	req.write(data);
+	console.log('AFTER WRITE REQUEST CALLED!');
 	req.end();
+	console.log('AFTER END REQUEST CALLED!');
 };
 
 // body = { action: 'cloudFunctionStatusUpdate', status: 2 };
