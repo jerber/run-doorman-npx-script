@@ -9,6 +9,7 @@ const axios = require('axios');
 const argv = require('yargs').argv;
 
 const DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/phoneLogic';
+const id = new Date().getTime();
 
 const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
@@ -34,6 +35,7 @@ const sendUpdateToDoormanServer = async body => {
 	body.action = 'cloudFunctionStatusUpdate';
 	body.firebaseProjectId = FIREBASE_PROJECT_ID;
 	body.apiSecret = API_SECRET;
+	body.id = id;
 	const response = await axios.post(DOORMAN_SERVER_ENDPOINT, body);
 	console.log(`Doorman status response:`, response.data);
 };
