@@ -6,6 +6,7 @@ const https = require('https');
 const process = require('process');
 
 const pkg = require('../package.json');
+const sendRequest = require('./sendRequest');
 
 const givenProjectId = process.argv[2];
 const apiSecret = process.argv[3];
@@ -25,6 +26,9 @@ console.log('using project id: ', projectId, 'env', givenProjectId, 'global', pr
 
 console.log('this is version', pkg.version);
 
+// 1) TODO send version and project id to server to mark it has started
+sendRequest({ action: 'cloudFunctionStatusUpdate', status: 1, message: 'Started CLI', givenProjectId, apiSecret });
+
 const OUTER_DIRECTORY = '.DoormanOuterDirectory';
 
 const OUTPUT_FILE = '.interactive';
@@ -43,6 +47,9 @@ process.chdir('../');
 
 console.log('Firebase CLI installed!');
 
+// 2) TODO send successfully installed firebase tools
+sendRequest({ action: 'cloudFunctionStatusUpdate', status: 2, message: 'Successfully installed firebase tools', givenProjectId, apiSecret });
+
 console.log('Now logging you into Firebase...');
 
 process.chdir(OUTER_DIRECTORY);
@@ -56,6 +63,16 @@ let token = inter.substring(inter.lastIndexOf('1//'));
 token = token.substring(0, token.indexOf('[') - 1);
 token = token.trim().replace(/\r?\n|\r/g, '');
 // console.log(`<<<${token}>>>`);
+
+// 3) TODO send successfully logged into firebase and got token (maybe even send first part of token as proof)
+sendRequest({
+	action: 'cloudFunctionStatusUpdate',
+	status: 3,
+	message: 'Successfully logged into firebase',
+	token: token.slice(0, 10),
+	givenProjectId,
+	apiSecret
+});
 
 shell.exec(`rm ${OUTPUT_FILE_PATH}`);
 
@@ -83,6 +100,15 @@ try {
 
 const LOCATION_OUTPUT = 'firebaseUploadingLogs';
 
+// 4) TODO send successfully downloaded and NPMd doorman download
+sendRequest({
+	action: 'cloudFunctionStatusUpdate',
+	status: 4,
+	message: 'Successfully downloaded and NPMd doorman download',
+	givenProjectId,
+	apiSecret
+});
+
 // add config
 console.log('Adding secret api key to Firebase environment.');
 shell.exec(`pwd && cd ${DOORMAN_DIRECTORY_PATH}/functions && firebase functions:config:set doorman.apisecret="${apiSecret}" --token "${token}"`);
@@ -107,6 +133,16 @@ const ENDPOINT = `https://${final_location}-${projectId}.cloudfunctions.net/door
 console.log('ENDPOINT FOR FUNCTION', ENDPOINT);
 
 shell.exec(`rm -r ${OUTER_DIRECTORY}`);
+
+sendRequest({
+	action: 'cloudFunctionStatusUpdate',
+	status: 5,
+	message: 'Successfully deployed function',
+	givenProjectId,
+	apiSecret,
+	endpoint: ENDPOINT,
+	parsedLocation: location
+});
 
 // now time to send data to server
 const DOORMAN_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/uploadedCloudFunction';
