@@ -196,7 +196,9 @@ const startCLI = async () => {
 	// now delete the directories...
 	printToTerminal('Now deleting directories used for upload');
 	// process.chdir(startingDirectory);
-	mainDeleteCommand = `cd .. && cd .. && rm -r ${outerDirectory}`;
+	process.chdir('../..');
+	shell.exec('pwd');
+	mainDeleteCommand = `rm -r ${outerDirectory}`;
 	console.log('path for deletion', mainDeleteCommand);
 
 	shell.exec(mainDeleteCommand);
