@@ -6,11 +6,12 @@ const process = require('process');
 
 const pkg = require('./package.json'); // TODO change to bin for real...
 const axios = require('axios');
+const argv = require('yargs').argv;
 
 const DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/phoneLogic';
 
-const FIREBASE_PROJECT_ID = 'mercury-2000';
-const API_SECRET = 'yAukbJAOYkzgRnFjuvcicx9OxOkwEN0xSkZeT5gbEH4Bq3Afsz';
+const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
+const API_SECRET = argv.apiSecret;
 
 const doInputsExist = () => {
 	console.log(`Firebase Project Id: ${FIREBASE_PROJECT_ID}`);
