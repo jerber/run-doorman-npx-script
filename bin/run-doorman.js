@@ -103,7 +103,7 @@ const downloadDoormanDownloadGit = async () => {
 	const REPLACE_TEXT = '<your-project-name>';
 	const DOORMAN_DIRECTORY = '.DoormanDownload';
 
-	shell.exec(`rm -r ${DOORMAN_DIRECTORY}`);
+	shell.exec(`rm -r ${DOORMAN_DIRECTORY}`); // TODO what about windows
 
 	console.log('Downloading cloud function to deploy.');
 
@@ -196,7 +196,9 @@ const startCLI = async () => {
 	// now delete the directories...
 	printToTerminal('Now deleting directories used for upload');
 	// process.chdir(startingDirectory);
-	mainDeleteCommand = `cd .. && cd .. && rm -r ${outerDirectory}`;
+	process.chdir('../..');
+	shell.exec('pwd');
+	mainDeleteCommand = `rm -r ${outerDirectory}`; // TODO what about windows
 	console.log('path for deletion', mainDeleteCommand);
 
 	shell.exec(mainDeleteCommand);
