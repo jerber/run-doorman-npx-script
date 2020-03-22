@@ -206,7 +206,6 @@ const startCLI = async () => {
 
 	shell.exec(mainDeleteCommand);
 	printToTerminal('DONE! Check your Doorman dashboard to see if the deployment was successful!');
-	console.log('NOW HURRR');
 };
 
 startCLI();
