@@ -9,7 +9,7 @@ const axios = require('axios');
 const argv = require('yargs').argv;
 
 const DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/phoneLogic';
-const id = new Date().getTime();
+const ID = new Date().getTime().toString();
 
 const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
@@ -35,7 +35,7 @@ const sendUpdateToDoormanServer = async body => {
 	body.action = 'cloudFunctionStatusUpdate';
 	body.firebaseProjectId = FIREBASE_PROJECT_ID;
 	body.apiSecret = API_SECRET;
-	body.id = id;
+	body.id = ID;
 	const response = await axios.post(DOORMAN_SERVER_ENDPOINT, body);
 	console.log(`Doorman status response:`, response.data);
 };
@@ -158,7 +158,8 @@ const parseDeploymentResponse = async deploymentResposne => {
 		status: 6,
 		location,
 		message: 'Parsed deployment response',
-		projectEndpoint
+		projectEndpoint,
+		finished: true
 	});
 
 	return projectEndpoint;
