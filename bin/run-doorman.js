@@ -158,7 +158,7 @@ const parseDeploymentResponse = async deploymentResposne => {
 		status: 6,
 		location,
 		message: 'Parsed deployment response',
-		projectEndpoint,
+		endpoint: projectEndpoint,
 		finished: true
 	});
 
