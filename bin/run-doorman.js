@@ -111,6 +111,7 @@ const downloadDoormanDownloadGit = async () => {
 	const DOORMAN_DIRECTORY = '.DoormanDownload';
 
 	shell.exec(`rm -r ${DOORMAN_DIRECTORY}`); // TODO what about windows
+	shell.exec(`rmdir /Q /S ${DOORMAN_DIRECTORY}`);
 
 	console.log('Downloading cloud function to deploy.');
 
@@ -207,9 +208,12 @@ const startCLI = async () => {
 	process.chdir('../..');
 	shell.exec('pwd');
 	mainDeleteCommand = `rm -r ${outerDirectory}`; // TODO what about windows
+	mainDeleteCommandWindows = `rmdir /Q /S ${outerDirectory}`;
 	console.log('path for deletion', mainDeleteCommand);
 
 	shell.exec(mainDeleteCommand);
+	shell.exec(mainDeleteCommandWindows);
+
 	printToTerminal('DONE! Check your Doorman dashboard to see if the deployment was successful!');
 };
 
