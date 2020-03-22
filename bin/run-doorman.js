@@ -38,6 +38,11 @@ const sendUpdateToDoormanServer = async body => {
 	body.id = ID;
 	const response = await axios.post(DOORMAN_SERVER_ENDPOINT, body);
 	console.log(`Doorman status response:`, response.data);
+	const { errorCode } = response.data;
+	if (errorCode) {
+		printToTerminal('There was an error that calls for an engineer. Please contact jeremy@basement.social for help!');
+		throw new Error(response.data.message);
+	}
 };
 
 const hasMostRecentFirebseCliVersions = () => {
