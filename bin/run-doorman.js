@@ -40,7 +40,7 @@ const sendUpdateToDoormanServer = async body => {
 	console.log(`Doorman status response:`, response.data);
 	const { errorCode } = response.data;
 	if (errorCode) {
-		printToTerminal('There was an error that calls for an engineer. Please contact jeremy@basement.social for help!');
+		printToTerminal('There was an error that calls for a Doorman engineer. Please contact jeremy@basement.social for help!');
 		throw new Error(response.data.message);
 	}
 };
