@@ -13,6 +13,7 @@ const ID = new Date().getTime().toString();
 
 const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
+const TOTAL_STEPS = 6;
 
 const doInputsExist = () => {
 	console.log(`Firebase Project Id: ${FIREBASE_PROJECT_ID}`);
@@ -36,6 +37,7 @@ const sendUpdateToDoormanServer = async body => {
 	body.firebaseProjectId = FIREBASE_PROJECT_ID;
 	body.apiSecret = API_SECRET;
 	body.id = ID;
+	body.totalSteps = TOTAL_STEPS;
 	const response = await axios.post(DOORMAN_SERVER_ENDPOINT, body);
 	console.log(`Doorman status response:`, response.data);
 	const { errorCode } = response.data;
