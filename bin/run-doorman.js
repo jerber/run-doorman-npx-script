@@ -51,6 +51,11 @@ const sendUpdateToDoormanServer = async body => {
 	}
 };
 
+const sendErrorUpdateToDoormanServer = async (message, status) => {
+	const body = { error: true, message, status };
+	return sendUpdateToDoormanServer(body);
+};
+
 const hasMostRecentFirebseCliVersions = () => {
 	pkgs = {
 		'firebase-tools': '7.15.1',
@@ -134,48 +139,39 @@ const downloadDoormanDownloadGit = async () => {
 	await sendUpdateToDoormanServer({ status: 4, message });
 };
 
-const setConfigAndDeployFunction = async token => {
+const setConfigAndDeployFunction = async (token, status) => {
 	console.log('Adding secret api key to Firebase environment.');
 	let { stdout, stderr } = shell.exec(`cd functions && firebase functions:config:set doorman.apisecret="${API_SECRET}" --token "${token}"`);
 
 	const errorStr = 'Authorization failed. This account is missing the following required permissions on project';
-
-	console.log('EARL STDOUT IN SET CONFIG', stdout);
-	console.log('EARL STDERR IN SET CONGIF', stderr);
+	const errorMessage = 'Authorization failed! Are you sure you logged into the correct Firebase account?';
 
 	if (stderr.includes(errorStr)) {
-		const errorMessage = `Authorization failed! Are you sure you logged into the correct Firebase account?`;
 		printToTerminal(errorMessage);
 		throw new Error(errorMessage);
 	}
 
-	console.log('ENDNDNDNDNDNDN EARL');
-
-	console.log('Deploying cloud function to Firebase...');
+	printToTerminal('Deploying cloud function to Firebase...');
 
 	({ stdout, stderr } = shell.exec(`cd functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic`));
 
-	console.log('STDOUT IN SET CONFIG', stdout);
-	console.log('STDERR IN SET CONGIF', stderr);
-	console.log('ENDNNDNNS FANE');
-
 	if (stderr.includes(errorStr)) {
-		const errorMessage = `Authorization failed! Are you sure you logged into the correct Firebase account?`;
 		printToTerminal(errorMessage);
 		throw new Error(errorMessage);
 	}
 
 	message = 'Deployment over, now will see if successfull';
-	console.log(message);
+	printToTerminal(message);
+
 	await sendUpdateToDoormanServer({
-		status: 5,
+		status: status,
 		message,
 		deploymentResponse: stdout
 	});
 	return stdout;
 };
 
-const parseDeploymentResponse = async deploymentResposne => {
+const parseDeploymentResponse = async (deploymentResposne, status) => {
 	printToTerminal('Parsing deployment response');
 	let location = deploymentResposne.substring(deploymentResposne.lastIndexOf('doormanPhoneLogic('));
 	location = location.substring(0, location.indexOf(')'));
@@ -190,7 +186,7 @@ const parseDeploymentResponse = async deploymentResposne => {
 	console.log('Project endpoint', projectEndpoint);
 
 	await sendUpdateToDoormanServer({
-		status: 6,
+		status: status,
 		location,
 		message: 'Parsed deployment response',
 		endpoint: projectEndpoint,
@@ -200,6 +196,15 @@ const parseDeploymentResponse = async deploymentResposne => {
 	return projectEndpoint;
 };
 
+const sendStartCLI = async status => {
+	printToTerminal('Starting CLI!');
+
+	await sendUpdateToDoormanServer({
+		status: status,
+		message: 'Started CLI'
+	});
+};
+
 const startCLI = async () => {
 	let { stdout: startingDirectory } = shell.exec('pwd');
 
@@ -207,7 +212,19 @@ const startCLI = async () => {
 	doInputsExist();
 
 	// Send first update
-	await sendUpdateToDoormanServer({ status: 1, message: 'Started CLI' });
+	// await sendUpdateToDoormanServer({ status: 1, message: 'Started CLI' });
+	const startCliStatus = 1;
+	try {
+		await sendStartCLI(startCliStatus);
+	} catch (error) {
+		printToTerminal(error.message);
+		if (error.message.includes('Api secret is invalid')) {
+			printToTerminal(
+				'You are using the wrong API Secret. Please try generating a new one from the dashboard and running the given command again'
+			);
+		}
+		return;
+	}
 
 	const outerDirectory = '.DoormanOuterDirectory';
 	// make and change dir to outter directory, which we will delete finally
@@ -224,16 +241,28 @@ const startCLI = async () => {
 
 	await downloadDoormanDownloadGit();
 	// pwd = .DoormanOuterDirectory/.DoormanDownload
+
+	const configAndDeployStatus = 5;
+	let deploymentResponse;
+
 	try {
-		const deploymentResponse = await setConfigAndDeployFunction(token);
+		deploymentResponse = await setConfigAndDeployFunction(token, configAndDeployStatus);
 	} catch (error) {
 		printToTerminal(error.message);
-		return;
+		return sendErrorUpdateToDoormanServer(error.message, configAndDeployStatus);
 	}
 
 	console.log('DEPLOYEMT RESPONSE', deploymentResponse);
 
-	const projectEndpoint = await parseDeploymentResponse(deploymentResponse);
+	const deploymentParseStatus = 6;
+	let projectEndpoint;
+
+	try {
+		projectEndpoint = await parseDeploymentResponse(deploymentResponse, deploymentParseStatus);
+	} catch (error) {
+		printToTerminal(error.message);
+		return sendErrorUpdateToDoormanServer(error.message, deploymentParseStatus);
+	}
 
 	// now delete the directories...
 	printToTerminal('Now deleting directories used for upload');
