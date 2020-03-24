@@ -75,7 +75,7 @@ const hasMostRecentFirebseCliVersions = () => {
 
 	for (pkg_str in pkg_strs) {
 		if (!stdout.includes(pkg_str)) {
-			printToTerminal(`The library ${pkg_str} is not up to date, so will isntall latest...`);
+			printToTerminal(`The library ${pkg_str} is not up to date, so will install latest...`);
 			return false;
 		}
 	}
@@ -162,7 +162,7 @@ const setConfigAndDeployFunction = async token => {
 		throw new Error(errorMessage);
 	}
 
-	message = 'Deployment over, now will see if successfull';
+	message = 'Deployment over, now will see if successful.';
 	printToTerminal(message);
 
 	await sendUpdateToDoormanServer({
@@ -266,7 +266,7 @@ const startCLI = async () => {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
 
-	console.log('DEPLOYEMT RESPONSE', deploymentResponse);
+	console.log('DEPLOYMENT RESPONSE', deploymentResponse);
 
 	let projectEndpoint;
 	try {
