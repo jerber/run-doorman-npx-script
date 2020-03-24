@@ -62,7 +62,7 @@ const hasMostRecentFirebseCliVersions = () => {
 		pkg_strs.push(`${key}@${pkgs[key]}`);
 	}
 	printToTerminal('Checking current Firebase CLI versions');
-	const { stdout } = shell.exec('npm list -g firebase-admin && npm list -g firebase-tools && npm list -g firebase-functions', { silent: true });
+	let { stdout } = shell.exec('npm list -g firebase-admin && npm list -g firebase-tools && npm list -g firebase-functions', { silent: true });
 
 	for (pkg_str in pkg_strs) {
 		if (!stdout.includes(pkg_str)) {
@@ -136,11 +136,34 @@ const downloadDoormanDownloadGit = async () => {
 
 const setConfigAndDeployFunction = async token => {
 	console.log('Adding secret api key to Firebase environment.');
-	shell.exec(`cd functions && firebase functions:config:set doorman.apisecret="${API_SECRET}" --token "${token}"`);
+	let { stdout, stderr } = shell.exec(`cd functions && firebase functions:config:set doorman.apisecret="${API_SECRET}" --token "${token}"`);
+
+	const errorStr = 'Authorization failed. This account is missing the following required permissions on project';
+
+	console.log('EARL STDOUT IN SET CONFIG', stdout);
+	console.log('EARL STDERR IN SET CONGIF', stderr);
+
+	if (stderr.includes(errorStr)) {
+		const errorMessage = `Authorization failed! Are you sure you logged into the correct Firebase account?`;
+		printToTerminal(errorMessage);
+		throw new Error(errorMessage);
+	}
+
+	console.log('ENDNDNDNDNDNDN EARL');
 
 	console.log('Deploying cloud function to Firebase...');
 
-	const { stdout } = shell.exec(`cd functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic`);
+	({ stdout, stderr } = shell.exec(`cd functions && firebase deploy --token "${token}" --only functions:doormanPhoneLogic`));
+
+	console.log('STDOUT IN SET CONFIG', stdout);
+	console.log('STDERR IN SET CONGIF', stderr);
+	console.log('ENDNNDNNS FANE');
+
+	if (stderr.includes(errorStr)) {
+		const errorMessage = `Authorization failed! Are you sure you logged into the correct Firebase account?`;
+		printToTerminal(errorMessage);
+		throw new Error(errorMessage);
+	}
 
 	message = 'Deployment over, now will see if successfull';
 	console.log(message);
@@ -178,7 +201,7 @@ const parseDeploymentResponse = async deploymentResposne => {
 };
 
 const startCLI = async () => {
-	const { stdout: startingDirectory } = shell.exec('pwd');
+	let { stdout: startingDirectory } = shell.exec('pwd');
 
 	console.log('this is version', pkg.version);
 	doInputsExist();
@@ -201,8 +224,12 @@ const startCLI = async () => {
 
 	await downloadDoormanDownloadGit();
 	// pwd = .DoormanOuterDirectory/.DoormanDownload
-
-	const deploymentResponse = await setConfigAndDeployFunction(token);
+	try {
+		const deploymentResponse = await setConfigAndDeployFunction(token);
+	} catch (error) {
+		printToTerminal(error.message);
+		return;
+	}
 
 	console.log('DEPLOYEMT RESPONSE', deploymentResponse);
 
