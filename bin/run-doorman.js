@@ -15,6 +15,8 @@ const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
 const TOTAL_STEPS = 6;
 
+let STATUS = 0;
+
 const doInputsExist = () => {
 	console.log(`Firebase Project Id: ${FIREBASE_PROJECT_ID}`);
 	if (!FIREBASE_PROJECT_ID) {
@@ -38,6 +40,7 @@ const sendUpdateToDoormanServer = async body => {
 	body.apiSecret = API_SECRET;
 	body.id = ID;
 	body.totalSteps = TOTAL_STEPS;
+	body.status = STATUS;
 	const response = await axios.post(DOORMAN_SERVER_ENDPOINT, body);
 	console.log(`Doorman status response:`, response.data);
 	const { errorCode } = response.data;
@@ -51,8 +54,9 @@ const sendUpdateToDoormanServer = async body => {
 	}
 };
 
-const sendErrorUpdateToDoormanServer = async (message, status) => {
-	const body = { error: true, message, status };
+const sendErrorUpdateToDoormanServer = async message => {
+	printToTerminal(message);
+	const body = { error: true, message };
 	return sendUpdateToDoormanServer(body);
 };
 
@@ -88,7 +92,6 @@ const installFirebaseCLI = async () => {
 		printToTerminal('Installed the latest Firebase CLI');
 	}
 	await sendUpdateToDoormanServer({
-		status: 2,
 		message: 'Installed Firebase CLI',
 		installedNewVersions: !mostRecent
 	});
@@ -107,7 +110,6 @@ const loginToFirebase = async () => {
 	printToTerminal(message);
 
 	await sendUpdateToDoormanServer({
-		status: 3,
 		message,
 		tokeSlice: token.slice(0, 10)
 	});
@@ -136,10 +138,10 @@ const downloadDoormanDownloadGit = async () => {
 	fs.writeFileSync(`.firebaserc`, afterData);
 	const message = 'Downloaded and NPMd Doorman Download';
 	printToTerminal(message);
-	await sendUpdateToDoormanServer({ status: 4, message });
+	await sendUpdateToDoormanServer({ message });
 };
 
-const setConfigAndDeployFunction = async (token, status) => {
+const setConfigAndDeployFunction = async token => {
 	console.log('Adding secret api key to Firebase environment.');
 	let { stdout, stderr } = shell.exec(`cd functions && firebase functions:config:set doorman.apisecret="${API_SECRET}" --token "${token}"`);
 
@@ -164,14 +166,13 @@ const setConfigAndDeployFunction = async (token, status) => {
 	printToTerminal(message);
 
 	await sendUpdateToDoormanServer({
-		status: status,
 		message,
 		deploymentResponse: stdout
 	});
 	return stdout;
 };
 
-const parseDeploymentResponse = async (deploymentResposne, status) => {
+const parseDeploymentResponse = async deploymentResposne => {
 	printToTerminal('Parsing deployment response');
 	let location = deploymentResposne.substring(deploymentResposne.lastIndexOf('doormanPhoneLogic('));
 	location = location.substring(0, location.indexOf(')'));
@@ -186,7 +187,6 @@ const parseDeploymentResponse = async (deploymentResposne, status) => {
 	console.log('Project endpoint', projectEndpoint);
 
 	await sendUpdateToDoormanServer({
-		status: status,
 		location,
 		message: 'Parsed deployment response',
 		endpoint: projectEndpoint,
@@ -196,13 +196,10 @@ const parseDeploymentResponse = async (deploymentResposne, status) => {
 	return projectEndpoint;
 };
 
-const sendStartCLI = async status => {
+const sendStartCLI = async () => {
 	printToTerminal('Starting CLI!');
 
-	await sendUpdateToDoormanServer({
-		status: status,
-		message: 'Started CLI'
-	});
+	await sendUpdateToDoormanServer({ message: 'Started CLI' });
 };
 
 const startCLI = async () => {
@@ -213,12 +210,13 @@ const startCLI = async () => {
 
 	// Send first update
 	// await sendUpdateToDoormanServer({ status: 1, message: 'Started CLI' });
-	const startCliStatus = 1;
 	try {
-		await sendStartCLI(startCliStatus);
+		STATUS++;
+		await sendStartCLI();
 	} catch (error) {
 		printToTerminal(error.message);
 		if (error.message.includes('Api secret is invalid')) {
+			// Should send to backend in some way, probably should send text
 			printToTerminal(
 				'You are using the wrong API Secret. Please try generating a new one from the dashboard and running the given command again'
 			);
@@ -234,34 +232,48 @@ const startCLI = async () => {
 	process.chdir(outerDirectory);
 	// pwd = .DoormanOuterDirectory
 
-	await installFirebaseCLI();
+	try {
+		STATUS++;
+		await installFirebaseCLI();
+	} catch (error) {
+		return sendErrorUpdateToDoormanServer(error.message);
+	}
 
-	const token = await loginToFirebase();
-	console.log('token', token);
+	let token;
+	try {
+		STATUS++;
+		token = await loginToFirebase();
+	} catch (error) {
+		return sendErrorUpdateToDoormanServer(error.message);
+	}
 
-	await downloadDoormanDownloadGit();
-	// pwd = .DoormanOuterDirectory/.DoormanDownload
-
-	const configAndDeployStatus = 5;
-	let deploymentResponse;
+	// console.log('token', token);
 
 	try {
-		deploymentResponse = await setConfigAndDeployFunction(token, configAndDeployStatus);
+		STATUS++;
+		await downloadDoormanDownloadGit();
 	} catch (error) {
-		printToTerminal(error.message);
-		return sendErrorUpdateToDoormanServer(error.message, configAndDeployStatus);
+		return sendErrorUpdateToDoormanServer(error.message);
+	}
+
+	// pwd = .DoormanOuterDirectory/.DoormanDownload
+
+	let deploymentResponse;
+	try {
+		STATUS++;
+		deploymentResponse = await setConfigAndDeployFunction(token);
+	} catch (error) {
+		return sendErrorUpdateToDoormanServer(error.message);
 	}
 
 	console.log('DEPLOYEMT RESPONSE', deploymentResponse);
 
-	const deploymentParseStatus = 6;
 	let projectEndpoint;
-
 	try {
-		projectEndpoint = await parseDeploymentResponse(deploymentResponse, deploymentParseStatus);
+		STATUS++;
+		projectEndpoint = await parseDeploymentResponse(deploymentResponse);
 	} catch (error) {
-		printToTerminal(error.message);
-		return sendErrorUpdateToDoormanServer(error.message, deploymentParseStatus);
+		return sendErrorUpdateToDoormanServer(error.message);
 	}
 
 	// now delete the directories...
