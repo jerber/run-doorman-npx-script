@@ -45,6 +45,10 @@ const sendUpdateToDoormanServer = async body => {
 		printToTerminal('There was an error that calls for a Doorman engineer. Please contact jeremy@basement.social for help!');
 		throw new Error(response.data.message);
 	}
+	if (!response.data.success) {
+		printToTerminal(response.data.message);
+		throw new Error(response.data.message);
+	}
 };
 
 const hasMostRecentFirebseCliVersions = () => {
