@@ -220,7 +220,11 @@ const testIAMPermissions = async endpoint => {
 		sendBody.code = iamResponse.message.code;
 		if (sendBody.message.toLowerCase().includes('iam')) {
 			const doormanDocs = 'https://docs.doorman.cool/introduction/getting-started/configure-firebase';
-			const newMessage = `To fix, follow the instructions on Doorman's docs here: ${doormanDocs}`;
+			const newMessage = `
+Deployed successfully, however you need to enable Firebase IAM permissions for project ${FIREBASE_PROJECT_ID} before this will work in your app.
+
+To fix, follow the instructions on Doorman's docs here: ${doormanDocs}
+`;
 			sendBody.message = sendBody.message + '\n\n' + newMessage;
 		}
 		printToTerminal(sendBody.message);
