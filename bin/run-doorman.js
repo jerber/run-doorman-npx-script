@@ -226,8 +226,24 @@ const testIAMPermissions = async endpoint => {
 	}
 };
 
+// allow this to be done from anywhere
+const cleanUp = () => {
+	// now delete the directories...
+	printToTerminal('Now deleting directories used for upload');
+	// process.chdir(startingDirectory);
+	process.chdir('../..');
+	shell.exec('pwd');
+	mainDeleteCommand = `rm -r ${outerDirectory}`; // TODO what about windows
+	mainDeleteCommandWindows = `rmdir /Q /S ${outerDirectory}`;
+	console.log('path for deletion', mainDeleteCommand);
+
+	shell.exec(mainDeleteCommand);
+	shell.exec(mainDeleteCommandWindows);
+};
+
 const startCLI = async () => {
 	let { stdout: startingDirectory } = shell.exec('pwd');
+	console.log('Starting');
 
 	console.log('this is version', pkg.version);
 	doInputsExist();
@@ -307,17 +323,7 @@ const startCLI = async () => {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
 
-	// now delete the directories...
-	printToTerminal('Now deleting directories used for upload');
-	// process.chdir(startingDirectory);
-	process.chdir('../..');
-	shell.exec('pwd');
-	mainDeleteCommand = `rm -r ${outerDirectory}`; // TODO what about windows
-	mainDeleteCommandWindows = `rmdir /Q /S ${outerDirectory}`;
-	console.log('path for deletion', mainDeleteCommand);
-
-	shell.exec(mainDeleteCommand);
-	shell.exec(mainDeleteCommandWindows);
+	cleanUp();
 
 	printToTerminal('DONE! Check your Doorman dashboard to see if the deployment was successful!');
 };
