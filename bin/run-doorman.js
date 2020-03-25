@@ -227,6 +227,15 @@ const testIAMPermissions = async endpoint => {
 	}
 };
 
+const sleep = (callback, delay) => {
+	return new Promise(resolve => {
+		setTimeout(async () => {
+			await callback();
+			resolve();
+		}, delay);
+	});
+};
+
 // allow this to be done from anywhere
 const cleanUp = () => {
 	// now delete the directories...
@@ -320,7 +329,8 @@ const startCLI = async () => {
 	try {
 		STATUS++;
 		printToTerminal('Now testing IAM permissions. This will take 15 seconds.');
-		await setTimeout(async () => await testIAMPermissions(projectEndpoint), 10000);
+		await sleep(async () => await testIAMPermissions(projectEndpoint), 10000);
+		// await setTimeout(async () => await testIAMPermissions(projectEndpoint), 10000);
 	} catch (error) {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
