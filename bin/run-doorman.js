@@ -205,14 +205,21 @@ const sendStartCLI = async () => {
 const testIAMPermissions = async endpoint => {
 	printToTerminal('Testing IAM Permissions!');
 	const body = { apiSecret: API_SECRET, phoneNumber: '+15556472619' };
-	const iamResponse = await axios.post(endpoint, body);
+	const { data: iamResponse } = await axios.post(endpoint, body);
+	console.log('IAM RESPONSE', iamResponse);
 	const sendBody = {};
 	if (iamResponse.success === true) {
 		sendBody.message = 'IAM is successfully set up! You are ready to make calls!';
 		printToTerminal(sendBody.message);
 		await sendUpdateToDoormanServer(sendBody);
 	} else {
-		sendBody.message = iamResponse.message;
+		sendBody.message = iamResponse.message.message;
+		sendBody.code = iamResponse.message.code;
+		if (sendBody.message.toLowerCase().includes('iam')) {
+			const doormanDocs = 'https://docs.doorman.cool/introduction/getting-started/configure-firebase';
+			const newMessage = `To fix, follow the instructions on Doorman's docs here: ${doormanDocs}`;
+			sendBody.message = sendBody.message + '\n\n' + newMessage;
+		}
 		printToTerminal(sendBody.message);
 		sendBody.warning = true;
 		await sendUpdateToDoormanServer(sendBody);
