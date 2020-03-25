@@ -207,7 +207,9 @@ const testIAMPermissions = async endpoint => {
 	printToTerminal('Testing IAM Permissions!');
 	const body = { apiSecret: API_SECRET, phoneNumber: '+15556472619' };
 	const { data: iamResponse } = await axios.post(endpoint, body);
-	console.log('IAM RESPONSE', iamResponse);
+	if (!iamResponse.token) {
+		console.log('IAM RESPONSE', iamResponse);
+	}
 	const sendBody = {};
 	if (iamResponse.success === true) {
 		sendBody.message = 'IAM is successfully set up! You are ready to make calls!';
