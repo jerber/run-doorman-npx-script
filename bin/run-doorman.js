@@ -13,7 +13,7 @@ const ID = new Date().getTime().toString();
 
 const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
-const TOTAL_STEPS = 6;
+const TOTAL_STEPS = 7;
 
 let STATUS = 0;
 
@@ -202,6 +202,23 @@ const sendStartCLI = async () => {
 	await sendUpdateToDoormanServer({ message: 'Started CLI' });
 };
 
+const testIAMPermissions = async endpoint => {
+	printToTerminal('Testing IAM Permissions!');
+	const body = { apiSecret: API_SECRET, phoneNumber: '+15556472619' };
+	const iamResponse = await axios.post(endpoint, body);
+	const sendBody = {};
+	if (iamResponse.success === true) {
+		sendBody.message = 'IAM is successfully set up! You are ready to make calls!';
+		printToTerminal(sendBody.message);
+		await sendUpdateToDoormanServer(sendBody);
+	} else {
+		sendBody.message = iamResponse.message;
+		printToTerminal(sendBody.message);
+		sendBody.warning = true;
+		await sendUpdateToDoormanServer(sendBody);
+	}
+};
+
 const startCLI = async () => {
 	let { stdout: startingDirectory } = shell.exec('pwd');
 
@@ -272,6 +289,13 @@ const startCLI = async () => {
 	try {
 		STATUS++;
 		projectEndpoint = await parseDeploymentResponse(deploymentResponse);
+	} catch (error) {
+		return sendErrorUpdateToDoormanServer(error.message);
+	}
+
+	try {
+		STATUS++;
+		await testIAMPermissions(projectEndpoint);
 	} catch (error) {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
