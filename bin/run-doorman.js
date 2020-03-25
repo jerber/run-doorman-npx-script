@@ -14,6 +14,7 @@ const ID = new Date().getTime().toString();
 const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
 const TOTAL_STEPS = 7;
+const OUTER_DIRECTORY = '.DoormanOuterDirectory';
 
 let STATUS = 0;
 
@@ -233,8 +234,8 @@ const cleanUp = () => {
 	// process.chdir(startingDirectory);
 	process.chdir('../..');
 	shell.exec('pwd');
-	mainDeleteCommand = `rm -r ${outerDirectory}`; // TODO what about windows
-	mainDeleteCommandWindows = `rmdir /Q /S ${outerDirectory}`;
+	mainDeleteCommand = `rm -r ${OUTER_DIRECTORY}`; // TODO what about windows
+	mainDeleteCommandWindows = `rmdir /Q /S ${OUTER_DIRECTORY}`;
 	console.log('path for deletion', mainDeleteCommand);
 
 	shell.exec(mainDeleteCommand);
@@ -264,7 +265,7 @@ const startCLI = async () => {
 		return;
 	}
 
-	const outerDirectory = '.DoormanOuterDirectory';
+	const outerDirectory = OUTER_DIRECTORY;
 	// make and change dir to outter directory, which we will delete finally
 	if (!fs.existsSync(outerDirectory)) {
 		fs.mkdirSync(outerDirectory);
@@ -319,7 +320,7 @@ const startCLI = async () => {
 	try {
 		STATUS++;
 		printToTerminal('Now testing IAM permissions. This will take 15 seconds.');
-		setTimeout(async () => await testIAMPermissions(projectEndpoint), 10000);
+		await setTimeout(async () => await testIAMPermissions(projectEndpoint), 10000);
 	} catch (error) {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
