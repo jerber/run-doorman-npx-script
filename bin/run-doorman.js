@@ -84,7 +84,8 @@ const hasMostRecentFirebseCliVersions = () => {
 };
 
 const installFirebaseCLI = async () => {
-	const mostRecent = hasMostRecentFirebseCliVersions();
+	// const mostRecent = hasMostRecentFirebseCliVersions();
+	const mostRecent = false;
 	if (mostRecent) {
 		printToTerminal('Firebase CLI was up to date');
 	} else {
@@ -216,17 +217,19 @@ const testIAMPermissions = async endpoint => {
 		printToTerminal(sendBody.message);
 		await sendUpdateToDoormanServer(sendBody);
 	} else {
-		sendBody.message = iamResponse.message.message;
-		sendBody.code = iamResponse.message.code;
-		if (sendBody.message.toLowerCase().includes('iam')) {
-			const doormanDocs = 'https://docs.doorman.cool/introduction/getting-started/configure-firebase';
-			const newMessage = `
+		const doormanDocs = 'https://docs.doorman.cool/introduction/getting-started/configure-firebase';
+		const newMessage = `
 Deployed successfully, however you need to enable Firebase IAM permissions for project ${FIREBASE_PROJECT_ID} before this will work in your app.
 
 To fix, follow the instructions on Doorman's docs here: ${doormanDocs}
 `;
-			sendBody.message = sendBody.message + '\n\n' + newMessage;
+
+		if (iamResponse.message.message && iamResponse.message.message.toLowerCase().includes('iam')) {
+			sendBody.message = iamResponse.message.message;
+			sendBody.code = iamResponse.message.code;
 		}
+		sendBody.message = sendBody.message + '\n\n' + newMessage;
+
 		printToTerminal(sendBody.message);
 		sendBody.warning = true;
 		await sendUpdateToDoormanServer(sendBody);
