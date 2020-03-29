@@ -212,6 +212,7 @@ const testIAMPermissions = async endpoint => {
 		console.log('IAM RESPONSE', iamResponse);
 	}
 	const sendBody = {};
+	sendBody.originalResponse = iamResponse.message;
 	if (iamResponse.success === true) {
 		sendBody.message = 'IAM is successfully set up! You are ready to make calls!';
 		printToTerminal(sendBody.message);
