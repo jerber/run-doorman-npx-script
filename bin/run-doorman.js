@@ -8,7 +8,11 @@ const pkg = require('../package.json'); // TODO change to bin for real...
 const axios = require('axios');
 const argv = require('yargs').argv;
 
-const DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/phoneLogic';
+let DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/phoneLogic';
+const DOORMAN_TESTING_ENDPOINT = 'http://127.0.0.1:5000/phoneLogic';
+
+if (argv.localTesting) DOORMAN_SERVER_ENDPOINT = DOORMAN_TESTING_ENDPOINT;
+
 const ID = new Date().getTime().toString();
 
 const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
@@ -31,11 +35,11 @@ const doInputsExist = () => {
 	return true;
 };
 
-const printToTerminal = body => {
+const printToTerminal = (body) => {
 	console.log(`\n\n**${body}**\n\n`);
 };
 
-const sendUpdateToDoormanServer = async body => {
+const sendUpdateToDoormanServer = async (body) => {
 	body.action = 'cloudFunctionStatusUpdate';
 	body.firebaseProjectId = FIREBASE_PROJECT_ID;
 	body.apiSecret = API_SECRET;
@@ -55,7 +59,7 @@ const sendUpdateToDoormanServer = async body => {
 	}
 };
 
-const sendErrorUpdateToDoormanServer = async message => {
+const sendErrorUpdateToDoormanServer = async (message) => {
 	printToTerminal(message);
 	const body = { error: true, message };
 	return sendUpdateToDoormanServer(body);
@@ -65,7 +69,7 @@ const hasMostRecentFirebseCliVersions = () => {
 	pkgs = {
 		'firebase-tools': '7.15.1',
 		'firebase-functions': '3.5.0',
-		'firebase-admin': '8.10.0'
+		'firebase-admin': '8.10.0',
 	};
 	pkg_strs = [];
 	for (let key in pkgs) {
@@ -95,7 +99,7 @@ const installFirebaseCLI = async () => {
 	}
 	await sendUpdateToDoormanServer({
 		message: 'Installed Firebase CLI',
-		installedNewVersions: !mostRecent
+		installedNewVersions: !mostRecent,
 	});
 };
 
@@ -113,7 +117,7 @@ const loginToFirebase = async () => {
 
 	await sendUpdateToDoormanServer({
 		message,
-		tokeSlice: token.slice(0, 10)
+		tokeSlice: token.slice(0, 10),
 	});
 
 	return token;
@@ -143,7 +147,7 @@ const downloadDoormanDownloadGit = async () => {
 	await sendUpdateToDoormanServer({ message });
 };
 
-const setConfigAndDeployFunction = async token => {
+const setConfigAndDeployFunction = async (token) => {
 	console.log('Adding secret api key to Firebase environment.');
 	let { stdout, stderr } = shell.exec(`cd functions && firebase functions:config:set doorman.apisecret="${API_SECRET}" --token "${token}"`);
 
@@ -169,12 +173,12 @@ const setConfigAndDeployFunction = async token => {
 
 	await sendUpdateToDoormanServer({
 		message,
-		deploymentResponse: stdout
+		deploymentResponse: stdout,
 	});
 	return stdout;
 };
 
-const parseDeploymentResponse = async deploymentResposne => {
+const parseDeploymentResponse = async (deploymentResposne) => {
 	printToTerminal('Parsing deployment response');
 	let location = deploymentResposne.substring(deploymentResposne.lastIndexOf('doormanPhoneLogic('));
 	location = location.substring(0, location.indexOf(')'));
@@ -192,7 +196,7 @@ const parseDeploymentResponse = async deploymentResposne => {
 		location,
 		message: 'Parsed deployment response',
 		endpoint: projectEndpoint,
-		finished: true
+		finished: true,
 	});
 
 	return projectEndpoint;
@@ -204,7 +208,7 @@ const sendStartCLI = async () => {
 	await sendUpdateToDoormanServer({ message: 'Started CLI' });
 };
 
-const testIAMPermissions = async endpoint => {
+const testIAMPermissions = async (endpoint) => {
 	printToTerminal('Testing IAM Permissions!');
 	const body = { apiSecret: API_SECRET, phoneNumber: '+15556472619' };
 	const { data: iamResponse } = await axios.post(endpoint, body);
@@ -238,7 +242,7 @@ To fix, follow the instructions on Doorman's docs here: ${doormanDocs}
 };
 
 const sleep = (callback, delay) => {
-	return new Promise(resolve => {
+	return new Promise((resolve) => {
 		setTimeout(async () => {
 			await callback();
 			resolve();
