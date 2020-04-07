@@ -9,7 +9,7 @@ const axios = require('axios');
 const argv = require('yargs').argv;
 
 let DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/phoneLogic';
-const DOORMAN_TESTING_ENDPOINT = 'http://127.0.0.1:5000/phoneLogic';
+const DOORMAN_TESTING_ENDPOINT = 'https://doormanbackend.herokuapp.com/phoneLogic';
 
 if (argv.localTesting) DOORMAN_SERVER_ENDPOINT = DOORMAN_TESTING_ENDPOINT;
 
