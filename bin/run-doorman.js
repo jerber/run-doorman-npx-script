@@ -342,8 +342,8 @@ const startCLI = async () => {
 
 	try {
 		STATUS++;
-		printToTerminal('Now testing IAM permissions. This will take 15 seconds.');
-		await sleep(async () => await testIAMPermissions(projectEndpoint), 10000);
+		printToTerminal('Now testing IAM permissions. This will take 1 minute.');
+		await sleep(async () => await testIAMPermissions(projectEndpoint), 50000);
 		// await setTimeout(async () => await testIAMPermissions(projectEndpoint), 10000);
 	} catch (error) {
 		return sendErrorUpdateToDoormanServer(error.message);
