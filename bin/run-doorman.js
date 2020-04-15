@@ -11,13 +11,16 @@ const argv = require('yargs').argv;
 let DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.com/phoneLogic';
 const DOORMAN_TESTING_ENDPOINT = 'https://doormanbackend.herokuapp.com/phoneLogic';
 
+const RAVEN_ENDPOINT = 'https://www.raven.cool/deploy';
+const RAVEN_TESTING_ENDPOINT = 'localhost:5000/deploy';
+
 if (argv.localTesting) DOORMAN_SERVER_ENDPOINT = DOORMAN_TESTING_ENDPOINT;
 
 const ID = new Date().getTime().toString();
 
 const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 9;
 const OUTER_DIRECTORY = '.DoormanOuterDirectory';
 
 let STATUS = 0;
@@ -47,7 +50,9 @@ const sendUpdateToDoormanServer = async (body) => {
 	body.totalSteps = TOTAL_STEPS;
 	body.status = STATUS;
 	const response = await axios.post(DOORMAN_SERVER_ENDPOINT, body);
-	console.log(`Doorman status response:`, response.data);
+	if (response.data && response.data.success === false) {
+		console.log(`Doorman status response:`, response.data);
+	}
 	const { errorCode } = response.data;
 	if (errorCode) {
 		printToTerminal('There was an error that calls for a Doorman engineer. Please contact jeremy@basement.social for help!');
@@ -88,8 +93,8 @@ const hasMostRecentFirebseCliVersions = () => {
 };
 
 const installFirebaseCLI = async () => {
-	// const mostRecent = hasMostRecentFirebseCliVersions();
-	const mostRecent = false;
+	const mostRecent = hasMostRecentFirebseCliVersions();
+	// const mostRecent = false;
 	if (mostRecent) {
 		printToTerminal('Firebase CLI was up to date');
 	} else {
@@ -178,9 +183,9 @@ const setConfigAndDeployFunction = async (token) => {
 	return stdout;
 };
 
-const parseDeploymentResponse = async (deploymentResposne) => {
+const parseDeploymentResponse = async (deploymentResponse) => {
 	printToTerminal('Parsing deployment response');
-	let location = deploymentResposne.substring(deploymentResposne.lastIndexOf('doormanPhoneLogic('));
+	let location = deploymentResponse.substring(deploymentResponse.lastIndexOf('doormanPhoneLogic('));
 	location = location.substring(0, location.indexOf(')'));
 	location = location.trim().replace(/\r?\n|\r/g, '');
 	location = location.replace('doormanPhoneLogic(', '').replace(')', '');
@@ -265,11 +270,30 @@ const cleanUp = () => {
 	shell.exec(mainDeleteCommandWindows);
 };
 
-const startCLI = async () => {
-	let { stdout: startingDirectory } = shell.exec('pwd');
-	console.log('Starting');
+const sendToRaven = async (token) => {
+	printToTerminal('BEGINNING DEPLOYMENT PROCESS');
+	body = {
+		firebaseProjectId: FIREBASE_PROJECT_ID,
+		apiSecret: API_SECRET,
+		deploymentId: ID,
+		token,
+		status: STATUS,
+		totalSteps: TOTAL_STEPS,
+	};
+	const response = await axios.post(RAVEN_ENDPOINT, body);
+	if (response.data.error) {
+		printToTerminal('There was an error with the deployment:');
+	}
+	printToTerminal(response.data);
+	// console.log(`RAVEN RESPONSE:`, response.data);
+};
 
-	console.log('this is version', pkg.version);
+const startCLI = async () => {
+	// let { stdout: startingDirectory } = shell.exec('pwd');
+	// console.log('Starting');
+
+	console.log('This is version', pkg.version);
+
 	doInputsExist();
 
 	// Send first update
@@ -310,6 +334,8 @@ const startCLI = async () => {
 	} catch (error) {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
+
+	return sendToRaven(token);
 
 	// console.log('token', token);
 
