@@ -105,7 +105,7 @@ const installFirebaseCLI = async () => {
 		printToTerminal('Firebase CLI was up to date');
 	} else {
 		printToTerminal('Installing latest Firebase CLI...');
-		shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest --save');
+		shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest');
 		printToTerminal('Installed the latest Firebase CLI');
 	}
 	await sendUpdateToDoormanServer({
@@ -327,6 +327,7 @@ const startCLI = async () => {
 		return;
 	}
 
+	/*
 	const outerDirectory = OUTER_DIRECTORY;
 	// make and change dir to outter directory, which we will delete finally
 	if (!fs.existsSync(outerDirectory)) {
@@ -334,6 +335,7 @@ const startCLI = async () => {
 	}
 	process.chdir(outerDirectory);
 	// pwd = .DoormanOuterDirectory
+    */
 
 	try {
 		STATUS++;
