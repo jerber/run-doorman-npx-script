@@ -44,6 +44,10 @@ const printToTerminal = (body) => {
 	console.log(chalk.blue(`\n\n**${body}**\n\n`));
 };
 
+const printErrorToTerminal = (body) => {
+	console.log(chalk.red(`\n\n**${body}**\n\n`));
+};
+
 const sendUpdateToDoormanServer = async (body) => {
 	body.action = 'cloudFunctionStatusUpdate';
 	body.firebaseProjectId = FIREBASE_PROJECT_ID;
@@ -95,8 +99,8 @@ const hasMostRecentFirebseCliVersions = () => {
 };
 
 const installFirebaseCLI = async () => {
-	const mostRecent = hasMostRecentFirebseCliVersions();
-	// const mostRecent = false;
+	// const mostRecent = hasMostRecentFirebseCliVersions();
+	const mostRecent = false;
 	if (mostRecent) {
 		printToTerminal('Firebase CLI was up to date');
 	} else {
@@ -288,13 +292,13 @@ const sendToRaven = async (token) => {
 	printToTerminal(JSON.stringify(response.data));
 
 	if (response.data.error) {
-		printToTerminal('There was an error with the deployment:');
+		printErrorToTerminal('There was an error with the deployment:');
 	}
 	if (response.data.success === true) {
 		printToTerminal('DEPLOYMENT SUCCESSFUL, YOU CAN NOW USE DOORMAN!');
 	}
 	if (response.data.success === false) {
-		printToTerminal(response.data.message);
+		printErrorToTerminal(response.data.message);
 	}
 	// console.log(`RAVEN RESPONSE:`, response.data);
 };
