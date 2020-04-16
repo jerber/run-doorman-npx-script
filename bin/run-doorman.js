@@ -3,6 +3,8 @@ const shell = require('shelljs');
 const fs = require('fs');
 const https = require('https');
 const process = require('process');
+const chalk = require('chalk');
+const ora = require('ora');
 
 const pkg = require('../package.json'); // TODO change to bin for real...
 const axios = require('axios');
@@ -39,7 +41,7 @@ const doInputsExist = () => {
 };
 
 const printToTerminal = (body) => {
-	console.log(`\n\n**${body}**\n\n`);
+	console.log(chalk.blue(`\n\n**${body}**\n\n`));
 };
 
 const sendUpdateToDoormanServer = async (body) => {
@@ -272,6 +274,8 @@ const cleanUp = () => {
 
 const sendToRaven = async (token) => {
 	printToTerminal('BEGINNING DEPLOYMENT PROCESS');
+	printToTerminal('You can check the deployment progress on your Doorman dashboard.');
+
 	body = {
 		firebaseProjectId: FIREBASE_PROJECT_ID,
 		apiSecret: API_SECRET,
@@ -281,10 +285,17 @@ const sendToRaven = async (token) => {
 		totalSteps: TOTAL_STEPS,
 	};
 	const response = await axios.post(RAVEN_ENDPOINT, body);
+	printToTerminal(JSON.stringify(response.data));
+
 	if (response.data.error) {
 		printToTerminal('There was an error with the deployment:');
 	}
-	printToTerminal(response.data);
+	if (response.data.success === true) {
+		printToTerminal('DEPLOYMENT SUCCESSFUL, YOU CAN NOW USE DOORMAN!');
+	}
+	if (response.data.success === false) {
+		printToTerminal(response.data.message);
+	}
 	// console.log(`RAVEN RESPONSE:`, response.data);
 };
 
@@ -334,8 +345,14 @@ const startCLI = async () => {
 	} catch (error) {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
-
-	return sendToRaven(token);
+	const spinner = new ora({
+		text: 'Deploying now, check your Doorman Dashboard to see the progress. This will take a few minutes...',
+		spinner: { frames: ['🚪', '🍾', '🚪', '🙉', '🚪', '👻', '🚪', '😎', '🚪', '🐇', '🚪'], interval: 500 },
+	});
+	spinner.start();
+	await sendToRaven(token);
+	spinner.stop();
+	return;
 
 	// console.log('token', token);
 
