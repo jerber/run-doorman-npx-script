@@ -315,6 +315,7 @@ const startCLI = async () => {
 	// await sendUpdateToDoormanServer({ status: 1, message: 'Started CLI' });
 	try {
 		STATUS++;
+
 		await sendStartCLI();
 	} catch (error) {
 		printToTerminal(error.message);
@@ -327,19 +328,15 @@ const startCLI = async () => {
 		return;
 	}
 
-	/*
-	const outerDirectory = OUTER_DIRECTORY;
-	// make and change dir to outter directory, which we will delete finally
-	if (!fs.existsSync(outerDirectory)) {
-		fs.mkdirSync(outerDirectory);
-	}
-	process.chdir(outerDirectory);
-	// pwd = .DoormanOuterDirectory
-    */
-
 	try {
 		STATUS++;
+		const firstS = new ora({
+			text: 'Installing Firebase CLI...',
+			spinner: { frames: ['🚪', '🍾', '🚪', '🙉', '🚪', '👻', '🚪', '😎', '🚪', '🐇', '🚪'], interval: 500 },
+		});
+		firstS.start();
 		await installFirebaseCLI();
+		firstS.stop();
 	} catch (error) {
 		return sendErrorUpdateToDoormanServer(error.message);
 	}
