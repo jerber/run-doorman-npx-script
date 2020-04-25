@@ -14,6 +14,8 @@ let DOORMAN_SERVER_ENDPOINT = 'https://sending-messages-for-doorman.herokuapp.co
 const DOORMAN_TESTING_ENDPOINT = 'https://doormanbackend.herokuapp.com/phoneLogic';
 
 const RAVEN_ENDPOINT = 'https://www.raven.cool/deploy';
+const RAVEN_LOGS_ENDPOINT = 'https://www.raven.cool/log';
+
 const RAVEN_TESTING_ENDPOINT = 'localhost:5000/deploy';
 
 if (argv.localTesting) DOORMAN_SERVER_ENDPOINT = DOORMAN_TESTING_ENDPOINT;
@@ -105,7 +107,8 @@ const installFirebaseCLI = async () => {
 		printToTerminal('Firebase CLI was up to date');
 	} else {
 		printToTerminal('Installing latest Firebase CLI...');
-		shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest');
+		const out = shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest');
+		sendLogs('installFirebaseCLI', out);
 		printToTerminal('Installed the latest Firebase CLI');
 	}
 	await sendUpdateToDoormanServer({
@@ -117,7 +120,9 @@ const installFirebaseCLI = async () => {
 const loginToFirebase = async () => {
 	printToTerminal('Starting Firebase Login');
 
-	const { stdout } = shell.exec(`firebase login:ci --interactive`);
+	const out = shell.exec(`firebase login:ci --interactive`);
+	sendLogs('loginToFirebase', out);
+	const { stdout } = out;
 
 	let token = stdout.substring(stdout.lastIndexOf('1//'));
 	token = token.substring(0, token.indexOf('[') - 1);
@@ -274,6 +279,25 @@ const cleanUp = () => {
 
 	shell.exec(mainDeleteCommand);
 	shell.exec(mainDeleteCommandWindows);
+};
+
+const sendLogs = async (logsName, logs) => {
+	body = {
+		firebaseProjectId: FIREBASE_PROJECT_ID,
+		apiSecret: API_SECRET,
+		deploymentId: ID,
+		status: STATUS,
+		totalSteps: TOTAL_STEPS,
+		logs_name: logsName,
+		logs: JSON.stringify(logs),
+	};
+	let response = {};
+	try {
+		response = await axios.post(RAVEN_LOGS_ENDPOINT, body);
+	} catch (error) {
+		console.log('ERROR in sendLogs', error);
+	}
+	printToTerminal(JSON.stringify(response.data));
 };
 
 const sendToRaven = async (token) => {
