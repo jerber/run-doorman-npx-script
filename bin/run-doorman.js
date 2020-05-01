@@ -5,6 +5,7 @@ const https = require('https');
 const process = require('process');
 const chalk = require('chalk');
 const ora = require('ora');
+const os = require('os');
 
 const pkg = require('../package.json'); // TODO change to bin for real...
 const axios = require('axios');
@@ -26,6 +27,9 @@ const FIREBASE_PROJECT_ID = argv.firebaseProjectId;
 const API_SECRET = argv.apiSecret;
 const TOTAL_STEPS = 9;
 const OUTER_DIRECTORY = '.DoormanOuterDirectory';
+let NODE_VERSION = '';
+let NPM_VERSION = '';
+let PLATFORM = { platform: os.platform(), type: os.type(), release: os.release() };
 
 let STATUS = 0;
 
@@ -57,6 +61,10 @@ const sendUpdateToDoormanServer = async (body) => {
 	body.id = ID;
 	body.totalSteps = TOTAL_STEPS;
 	body.status = STATUS;
+	body.nodeVersion = NODE_VERSION;
+	body.npmVersion = NPM_VERSION;
+	body.platform = PLATFORM;
+
 	const response = await axios.post(DOORMAN_SERVER_ENDPOINT, body);
 	if (response.data && response.data.success === false) {
 		console.log(`Doorman status response:`, response.data);
@@ -107,7 +115,7 @@ const installFirebaseCLI = async () => {
 		printToTerminal('Firebase CLI was up to date');
 	} else {
 		printToTerminal('Installing latest Firebase CLI...');
-		const out = shell.exec('npm install -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest');
+		const out = shell.exec('npm install --unsafe-perm -g firebase-tools && npm install -g firebase-functions@latest firebase-admin@latest');
 		sendLogs('installFirebaseCLI', out);
 		printToTerminal('Installed the latest Firebase CLI');
 	}
@@ -331,6 +339,14 @@ const startCLI = async () => {
 	// let { stdout: startingDirectory } = shell.exec('pwd');
 	// console.log('Starting');
 
+	let { stdout } = shell.exec('node -v');
+	NODE_VERSION = stdout.trim();
+
+	let outter = shell.exec('npm -v');
+	NPM_VERSION = outter.stdout.trim();
+
+	console.log('node version', NODE_VERSION, 'npm version', NPM_VERSION);
+
 	console.log('This is version', pkg.version);
 
 	doInputsExist();
@@ -377,7 +393,11 @@ const startCLI = async () => {
 		spinner: { frames: ['🚪', '🍾', '🚪', '🙉', '🚪', '👻', '🚪', '😎', '🚪', '🐇', '🚪'], interval: 500 },
 	});
 	spinner.start();
-	await sendToRaven(token);
+	try {
+		await sendToRaven(token);
+	} catch (error) {
+		console.log('ERROR', error);
+	}
 	spinner.stop();
 	return;
 
